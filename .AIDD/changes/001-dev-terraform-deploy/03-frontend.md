@@ -80,7 +80,7 @@ aws cloudformation create-stack \
   --template-body file://frontend/cloudformation-main.yaml \
   --parameters ParameterKey=ProjectName,ParameterValue=kicks-shoes \
   --capabilities CAPABILITY_NAMED_IAM \
-  --region ap-southeast-1
+  --region us-west-2
 
 # Hoặc có WAF (thay WAF_ARN bằng giá trị lấy ở bước 2)
 aws cloudformation create-stack \
@@ -90,14 +90,14 @@ aws cloudformation create-stack \
     ParameterKey=ProjectName,ParameterValue=kicks-shoes \
     ParameterKey=WAFWebACLArn,ParameterValue=WAF_ARN \
   --capabilities CAPABILITY_NAMED_IAM \
-  --region ap-southeast-1
+  --region us-west-2
 ```
 
 ### Theo dõi tiến trình (CloudFront mất ~15-20 phút)
 ```bash
 aws cloudformation wait stack-create-complete \
   --stack-name kicks-shoes-frontend \
-  --region ap-southeast-1
+  --region us-west-2
 ```
 
 ### Lấy outputs — cần cho bước tiếp theo
@@ -106,7 +106,7 @@ aws cloudformation describe-stacks \
   --stack-name kicks-shoes-frontend \
   --query 'Stacks[0].Outputs' \
   --output table \
-  --region ap-southeast-1
+  --region us-west-2
 ```
 
 Ghi lại 3 giá trị:
@@ -187,7 +187,7 @@ aws cloudformation update-stack \
   --template-body file://frontend/cloudformation-main.yaml \
   --parameters ParameterKey=ProjectName,ParameterValue=kicks-shoes \
   --capabilities CAPABILITY_NAMED_IAM \
-  --region ap-southeast-1
+  --region us-west-2
 ```
 
 ---
@@ -209,7 +209,7 @@ Hoặc trigger thủ công: **GitHub → Actions → Deploy Frontend to AWS S3 +
 
 ```bash
 # Kiểm tra S3 có file chưa
-aws s3 ls s3://kicks-shoes-frontend --region ap-southeast-1
+aws s3 ls s3://kicks-shoes-frontend --region us-west-2
 
 # Test CloudFront
 curl -I https://CLOUDFRONT_DOMAIN/index.html

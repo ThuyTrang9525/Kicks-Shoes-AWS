@@ -15,7 +15,7 @@ permissions:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  AWS_REGION: ap-southeast-1
+  AWS_REGION: us-west-2
   TF_NETWORK_DIR: infra/terraform/environments/dev/01-network
   TF_APP_DIR: infra/terraform/environments/dev/02-app
   TF_STATE_BUCKET: kicks-shoes-tf-state

@@ -38,8 +38,8 @@ const baseAllowedOrigins = [
   'https://kicks-shoes-2025.firebaseapp.com',
 
   // AWS S3 + CloudFront
-  'http://kicks-shoes-frontend.s3-website-ap-southeast-1.amazonaws.com',
-  'https://kicks-shoes-frontend.s3-website-ap-southeast-1.amazonaws.com',
+  'http://kicks-shoes-frontend.s3-website-us-west-2.amazonaws.com',
+  'https://kicks-shoes-frontend.s3-website-us-west-2.amazonaws.com',
   'https://d3k5cm2ny387y1.cloudfront.net',
 ];
 

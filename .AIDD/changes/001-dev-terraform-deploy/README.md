@@ -28,13 +28,13 @@ Deploy full AWS infrastructure for the `dev` environment using public Terraform 
 | Network Firewall | Excluded | Cost/complexity not justified for dev |
 | Redis AZ | Single node | Dev cost saving |
 | DynamoDB PITR | Disabled | Dev environment |
-| WAF scope | CloudFront WAF in `us-east-1`, ALB WAF in `ap-southeast-1` | AWS constraint for CloudFront-attached WAF |
-| ACM cert | `us-east-1` alias for CloudFront cert, `ap-southeast-1` for ALB | AWS constraint |
+| WAF scope | CloudFront WAF in `us-east-1`, ALB WAF in `us-west-2` | AWS constraint for CloudFront-attached WAF |
+| ACM cert | `us-east-1` alias for CloudFront cert, `us-west-2` for ALB | AWS constraint |
 | Cognito | Raw `aws_cognito_user_pool` resource | No well-maintained public module |
 | CloudFront | Raw `aws_cloudfront_distribution` resource | No standard `terraform-aws-modules` CF module |
 | Route53 zone | `data` lookup of existing hosted zone | Zone assumed pre-existing |
 | VPC CIDR | `10.0.0.0/16` | Avoids conflict with prod (`10.42.0.0/16`) |
-| AWS Region | `ap-southeast-1` | Same as prod |
+| AWS Region | `us-west-2` | Same as prod |
 
 ---
 

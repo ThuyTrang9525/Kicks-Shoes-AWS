@@ -20,22 +20,22 @@ frontend/
 | Environment | Backend URL | Frontend URL |
 |-------------|-------------|--------------|
 | Local | http://localhost:3000 | http://localhost:5173 |
-| AWS Dev | http://kicks-shoes-dev-alb-1014392323.ap-southeast-1.elb.amazonaws.com | https://d3k5cm2ny387y1.cloudfront.net |
+| AWS Dev | http://kicks-shoes-dev-alb-1014392323.us-west-2.elb.amazonaws.com | https://d3k5cm2ny387y1.cloudfront.net |
 | AWS Prod | TBD | TBD |
 
 ### File .env.dev (AWS Development)
 
 ```bash
 # Backend API (ECS EC2 với ALB)
-VITE_API_URL=http://kicks-shoes-dev-alb-1014392323.ap-southeast-1.elb.amazonaws.com
-VITE_API_BASE_URL=http://kicks-shoes-dev-alb-1014392323.ap-southeast-1.elb.amazonaws.com/api
+VITE_API_URL=http://kicks-shoes-dev-alb-1014392323.us-west-2.elb.amazonaws.com
+VITE_API_BASE_URL=http://kicks-shoes-dev-alb-1014392323.us-west-2.elb.amazonaws.com/api
 
 # Socket.IO
-VITE_SOCKET_URL=http://kicks-shoes-dev-alb-1014392323.ap-southeast-1.elb.amazonaws.com
+VITE_SOCKET_URL=http://kicks-shoes-dev-alb-1014392323.us-west-2.elb.amazonaws.com
 
 # Mobile App
-VITE_MOBILE_API_URL=http://kicks-shoes-dev-alb-1014392323.ap-southeast-1.elb.amazonaws.com
-VITE_MOBILE_API_BASE_URL=http://kicks-shoes-dev-alb-1014392323.ap-southeast-1.elb.amazonaws.com/api
+VITE_MOBILE_API_URL=http://kicks-shoes-dev-alb-1014392323.us-west-2.elb.amazonaws.com
+VITE_MOBILE_API_BASE_URL=http://kicks-shoes-dev-alb-1014392323.us-west-2.elb.amazonaws.com/api
 ```
 
 ## Sử dụng
@@ -81,10 +81,10 @@ npm run deploy:aws
 
 ```bash
 # Health check
-curl http://kicks-shoes-dev-alb-1014392323.ap-southeast-1.elb.amazonaws.com/api/health
+curl http://kicks-shoes-dev-alb-1014392323.us-west-2.elb.amazonaws.com/api/health
 
 # Test API endpoint
-curl http://kicks-shoes-dev-alb-1014392323.ap-southeast-1.elb.amazonaws.com/api/products
+curl http://kicks-shoes-dev-alb-1014392323.us-west-2.elb.amazonaws.com/api/products
 ```
 
 ### Test từ Frontend

@@ -4,7 +4,7 @@ param(
 
   [string]$SourceFile = "D:\AWS\Kicks-Shoes-AWS\ket.md",
 
-  [string]$Region = "ap-southeast-1"
+  [string]$Region = "us-west-2"
 )
 
 if (-not (Test-Path $SourceFile)) {

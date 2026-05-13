@@ -54,7 +54,7 @@ http://d3k5cm2ny387y1.cloudfront.net
 aws acm request-certificate \
   --domain-name api.kicks-shoes.com \
   --validation-method DNS \
-  --region ap-southeast-1
+  --region us-west-2
 
 # Validate qua DNS
 # Add CNAME records vào DNS provider
@@ -108,16 +108,16 @@ aws cloudformation deploy \
   --parameter-overrides \
     CertificateArn=arn:aws:acm:... \
   --capabilities CAPABILITY_NAMED_IAM \
-  --region ap-southeast-1
+  --region us-west-2
 ```
 
 #### Bước 4: Update Frontend .env
 
 ```bash
 # frontend/.env
-VITE_API_URL=https://kicks-shoes-dev-alb-1014392323.ap-southeast-1.elb.amazonaws.com
-VITE_API_BASE_URL=https://kicks-shoes-dev-alb-1014392323.ap-southeast-1.elb.amazonaws.com/api
-VITE_SOCKET_URL=https://kicks-shoes-dev-alb-1014392323.ap-southeast-1.elb.amazonaws.com
+VITE_API_URL=https://kicks-shoes-dev-alb-1014392323.us-west-2.elb.amazonaws.com
+VITE_API_BASE_URL=https://kicks-shoes-dev-alb-1014392323.us-west-2.elb.amazonaws.com/api
+VITE_SOCKET_URL=https://kicks-shoes-dev-alb-1014392323.us-west-2.elb.amazonaws.com
 ```
 
 #### Bước 5: Rebuild & Redeploy Frontend
@@ -137,7 +137,7 @@ Setup CloudFront để proxy requests tới backend:
 # CloudFront Origin
 Origins:
   - Id: BackendOrigin
-    DomainName: kicks-shoes-dev-alb-1014392323.ap-southeast-1.elb.amazonaws.com
+    DomainName: kicks-shoes-dev-alb-1014392323.us-west-2.elb.amazonaws.com
     CustomOriginConfig:
       HTTPPort: 80
       OriginProtocolPolicy: http-only
@@ -187,7 +187,7 @@ chrome.exe --disable-web-security --user-data-dir="C:/temp/chrome-dev"
 # https://ngrok.com/download
 
 # Expose backend ALB
-ngrok http kicks-shoes-dev-alb-1014392323.ap-southeast-1.elb.amazonaws.com:80
+ngrok http kicks-shoes-dev-alb-1014392323.us-west-2.elb.amazonaws.com:80
 
 # Update frontend .env với ngrok HTTPS URL
 VITE_API_BASE_URL=https://abc123.ngrok.io/api
@@ -217,7 +217,7 @@ ViewerProtocolPolicy: allow-all  # Thay vì redirect-to-https
 aws cloudformation deploy \
   --template-file frontend/cloudformation-main.yaml \
   --stack-name kicks-shoes-frontend \
-  --region ap-southeast-1
+  --region us-west-2
 
 # Test với HTTP
 http://d3k5cm2ny387y1.cloudfront.net
@@ -235,7 +235,7 @@ http://d3k5cm2ny387y1.cloudfront.net
 ## 🆘 Current Status
 
 - ✅ Frontend deployed: https://d3k5cm2ny387y1.cloudfront.net
-- ✅ Backend deployed: http://kicks-shoes-dev-alb-1014392323.ap-southeast-1.elb.amazonaws.com
+- ✅ Backend deployed: http://kicks-shoes-dev-alb-1014392323.us-west-2.elb.amazonaws.com
 - ❌ Mixed Content: HTTPS → HTTP blocked
 - ⏳ Need: Enable HTTPS on backend OR allow HTTP on frontend
 

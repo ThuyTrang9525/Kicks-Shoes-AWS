@@ -18,7 +18,7 @@ Pass criteria:
 ## 2) Pull/Build/Push/Deploy (5 minutes)
 
 - Run end-to-end script:
-  - `./scripts/ecs-fargate-e2e.ps1 -AwsAccountId <ACCOUNT_ID> -AwsProfile default -AwsRegion ap-southeast-1 -EcrRepository kicks-shoes-backend -BaseTag latest`
+  - `./scripts/ecs-fargate-e2e.ps1 -AwsAccountId <ACCOUNT_ID> -AwsProfile default -AwsRegion us-west-2 -EcrRepository kicks-shoes-backend -BaseTag latest`
 - Capture outputs:
   - ALB URL
   - ECS cluster/service names
@@ -42,8 +42,8 @@ Option B (alternative with k6 image):
 
 Monitor scaling in parallel:
 
-- `aws ecs describe-services --cluster <CLUSTER> --services <SERVICE> --region ap-southeast-1 --query "services[0].{desired:desiredCount,running:runningCount,pending:pendingCount}" --output table`
-- `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name CPUUtilization --dimensions Name=ClusterName,Value=<CLUSTER> Name=ServiceName,Value=<SERVICE> --start-time $(Get-Date).AddMinutes(-15).ToString("s") --end-time $(Get-Date).ToString("s") --period 60 --statistics Average --region ap-southeast-1`
+- `aws ecs describe-services --cluster <CLUSTER> --services <SERVICE> --region us-west-2 --query "services[0].{desired:desiredCount,running:runningCount,pending:pendingCount}" --output table`
+- `aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name CPUUtilization --dimensions Name=ClusterName,Value=<CLUSTER> Name=ServiceName,Value=<SERVICE> --start-time $(Get-Date).AddMinutes(-15).ToString("s") --end-time $(Get-Date).ToString("s") --period 60 --statistics Average --region us-west-2`
 
 Pass criteria:
 
@@ -68,4 +68,4 @@ Pass criteria:
 - [ ] Scale-out observed during load.
 - [ ] Scale-in observed after load stops.
 - [ ] Rollback command prepared:
-  - `aws ecs update-service --cluster <CLUSTER> --service <SERVICE> --task-definition <PREVIOUS_TASK_DEF_ARN> --force-new-deployment --region ap-southeast-1`
+  - `aws ecs update-service --cluster <CLUSTER> --service <SERVICE> --task-definition <PREVIOUS_TASK_DEF_ARN> --force-new-deployment --region us-west-2`

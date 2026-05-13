@@ -27,7 +27,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  AWS_REGION: ap-southeast-1
+  AWS_REGION: us-west-2
   APP_NAME: kicks-shoes
   ECR_REPOSITORY: kicks-shoes-backend
   TF_STATE_KEY: zero-tf/ecs-fargate.tfstate

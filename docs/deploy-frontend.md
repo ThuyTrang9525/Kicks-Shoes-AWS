@@ -34,14 +34,14 @@ Luồng hoạt động:
 
 AWS WAF (Web Application Firewall) khi dùng với CloudFront **bắt buộc phải được tạo ở region `us-east-1` (N. Virginia)**. Đây là giới hạn cứng của AWS, không thể thay đổi.
 
-Trong khi đó, stack chính (S3 + CloudFront) có thể deploy ở bất kỳ region nào (dự án này dùng `ap-southeast-1` - Singapore).
+Trong khi đó, stack chính (S3 + CloudFront) có thể deploy ở bất kỳ region nào (dự án này dùng `us-west-2` - Singapore).
 
 Vì CloudFormation không cho phép một stack tạo resource ở 2 region khác nhau cùng lúc, nên phải **tách thành 2 stack riêng biệt**:
 
 | File | Region | Mục đích |
 |------|--------|----------|
 | `cloudformation-waf.yaml` | `us-east-1` | Tạo WAF Web ACL trước |
-| `cloudformation-main.yaml` | `ap-southeast-1` | Tạo S3 + CloudFront, nhận WAF ARN từ stack trên |
+| `cloudformation-main.yaml` | `us-west-2` | Tạo S3 + CloudFront, nhận WAF ARN từ stack trên |
 
 ### Thứ tự deploy bắt buộc
 
@@ -50,7 +50,7 @@ Bước 1: Deploy cloudformation-waf.yaml  (us-east-1)
                     │
                     │  Output: WAFWebACLArn
                     ▼
-Bước 2: Deploy cloudformation-main.yaml (ap-southeast-1)
+Bước 2: Deploy cloudformation-main.yaml (us-west-2)
          với tham số WAFWebACLArn = <ARN từ bước 1>
 ```
 
@@ -92,7 +92,7 @@ Bước 2: Deploy cloudformation-main.yaml (ap-southeast-1)
 
 ### 2. `cloudformation-main.yaml` — Main Stack
 
-**Deploy ở: `ap-southeast-1`**
+**Deploy ở: `us-west-2`**
 
 #### Parameters
 
@@ -272,7 +272,7 @@ Vào `GitHub Repo → Settings → Secrets and variables → Actions`:
 |--------|---------|------------|
 | `AWS_ACCESS_KEY_ID` | Access key của IAM User | IAM Console |
 | `AWS_SECRET_ACCESS_KEY` | Secret key của IAM User | IAM Console (chỉ hiện 1 lần) |
-| `AWS_REGION` | `ap-southeast-1` | Cố định |
+| `AWS_REGION` | `us-west-2` | Cố định |
 | `AWS_S3_BUCKET` | `kicks-shoes-frontend` | Output của CloudFormation main stack |
 | `AWS_CLOUDFRONT_DISTRIBUTION_ID` | `EXXXXXXXXXX` | Output của CloudFormation main stack |
 | `AWS_CLOUDFRONT_DOMAIN` | `xxxx.cloudfront.net` | Output của CloudFormation main stack |
@@ -329,13 +329,13 @@ aws cloudformation describe-stacks \
 
 Kết quả dạng: `arn:aws:wafv2:us-east-1:<ACCOUNT_ID>:global/webacl/kicks-shoes-waf/<ID>`
 
-### Bước 3: Deploy Main Stack (ap-southeast-1)
+### Bước 3: Deploy Main Stack (us-west-2)
 
 ```bash
 aws cloudformation deploy \
   --template-file frontend/cloudformation-main.yaml \
   --stack-name kicks-shoes-main \
-  --region ap-southeast-1 \
+  --region us-west-2 \
   --parameter-overrides \
     ProjectName=kicks-shoes \
     WAFWebACLArn=<ARN từ bước 2> \
@@ -353,7 +353,7 @@ aws cloudformation deploy \
 ```bash
 aws cloudformation describe-stacks \
   --stack-name kicks-shoes-main \
-  --region ap-southeast-1 \
+  --region us-west-2 \
   --query "Stacks[0].Outputs"
 ```
 
@@ -448,7 +448,7 @@ Dựa trên cấu hình trong repo, **đã deploy** các thành phần sau:
 | Thành phần | Trạng thái | Ghi chú |
 |------------|------------|---------|
 | CloudFormation WAF Stack | Đã deploy | Region `us-east-1` |
-| CloudFormation Main Stack | Đã deploy | Region `ap-southeast-1` |
+| CloudFormation Main Stack | Đã deploy | Region `us-west-2` |
 | S3 Bucket | Đã tạo | `kicks-shoes-frontend` |
 | CloudFront Distribution | Đã tạo | Có WAF gắn kèm |
 | GitHub Actions Workflow | Đã cấu hình | Auto-deploy khi push `main`/`production` |

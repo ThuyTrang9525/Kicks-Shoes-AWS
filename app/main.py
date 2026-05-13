@@ -15,7 +15,7 @@ TABLE_NAME = os.environ["TABLE_NAME"]
 REDIS_HOST = os.environ["REDIS_HOST"]
 REDIS_AUTH = os.environ["REDIS_AUTH_TOKEN"]
 CACHE_TTL = int(os.environ.get("CACHE_TTL_SECONDS", "300"))
-AWS_REGION = os.environ.get("AWS_REGION", "ap-southeast-1")
+AWS_REGION = os.environ.get("AWS_REGION", "us-west-2")
 
 # Boto3 with retry & connection reuse
 boto_cfg = Config(

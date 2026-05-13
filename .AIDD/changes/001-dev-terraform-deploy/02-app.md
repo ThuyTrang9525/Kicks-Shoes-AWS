@@ -19,7 +19,7 @@ Deploy all application-layer resources for dev. Reads VPC outputs from `01-netwo
 ├── data.tf                   # remote_state + data sources
 ├── variables.tf
 ├── outputs.tf
-├── providers.tf              # two aliases: ap-southeast-1 + us-east-1 (WAF/ACM for CF)
+├── providers.tf              # two aliases: us-west-2 + us-east-1 (WAF/ACM for CF)
 ├── versions.tf
 └── terraform.tfvars.example
 ```
@@ -31,7 +31,7 @@ Deploy all application-layer resources for dev. Reads VPC outputs from `01-netwo
 | Component | Type | Public Module / Resource |
 |-----------|------|--------------------------|
 | Security Groups | Resource | `terraform-aws-modules/security-group/aws ~> 5.0` |
-| ACM (ALB cert) | Module | `terraform-aws-modules/acm/aws ~> 5.0` — region `ap-southeast-1` |
+| ACM (ALB cert) | Module | `terraform-aws-modules/acm/aws ~> 5.0` — region `us-west-2` |
 | ACM (CloudFront cert) | Module | `terraform-aws-modules/acm/aws ~> 5.0` — provider alias `us-east-1` |
 | WAF (CloudFront) | Resource | `aws_wafv2_web_acl` — provider alias `us-east-1` |
 | ALB | Module | `terraform-aws-modules/alb/aws ~> 9.0` |
@@ -62,7 +62,7 @@ Route53 (DNS) ──→ CloudFront (CDN)
                     ├── S3 static frontend (origin 1)
                     │
                     └── ALB (origin 2)
-                          │   ACM cert (ap-southeast-1)
+                          │   ACM cert (us-west-2)
                           │   Security Group: 80/443 from 0.0.0.0/0
                           │
                           ▼
@@ -114,7 +114,7 @@ terraform {
   backend "s3" {
     bucket  = "kicks-shoes-tf-state"
     key     = "dev/02-app/terraform.tfstate"
-    region  = "ap-southeast-1"
+    region  = "us-west-2"
     encrypt = true
   }
 }
@@ -131,7 +131,7 @@ data "terraform_remote_state" "network" {
   config = {
     bucket = "kicks-shoes-state-trang"
     key    = "dev/01-network/terraform.tfstate"
-    region = "ap-southeast-1"
+    region = "us-west-2"
   }
 }
 
@@ -209,7 +209,7 @@ module "sg_redis" {
 ### ACM Certificates
 
 ```hcl
-# ALB cert (ap-southeast-1)
+# ALB cert (us-west-2)
 module "acm_alb" {
   source  = "terraform-aws-modules/acm/aws"
   version = "~> 5.0"
@@ -653,7 +653,7 @@ variable "project_name" {
 
 variable "aws_region" {
   type    = string
-  default = "ap-southeast-1"
+  default = "us-west-2"
 }
 
 variable "domain_name" {
@@ -663,7 +663,7 @@ variable "domain_name" {
 
 variable "container_image" {
   type        = string
-  description = "ECR image URI, e.g. 123456789.dkr.ecr.ap-southeast-1.amazonaws.com/kicks-shoes-backend:dev-latest"
+  description = "ECR image URI, e.g. 123456789.dkr.ecr.us-west-2.amazonaws.com/kicks-shoes-backend:dev-latest"
 }
 
 variable "container_port" {
@@ -762,10 +762,10 @@ output "cognito_client_id" {
 
 ```hcl
 project_name   = "kicks-shoes-dev"
-aws_region     = "ap-southeast-1"
+aws_region     = "us-west-2"
 domain_name    = "kicks-shoes.com"
 
-container_image        = "123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/kicks-shoes-backend:dev-latest"
+container_image        = "123456789012.dkr.ecr.us-west-2.amazonaws.com/kicks-shoes-backend:dev-latest"
 container_port         = 3000
 desired_count          = 1
 task_cpu               = 256

@@ -3,7 +3,7 @@ data "terraform_remote_state" "network" {
   config = {
     bucket = "kicks-shoes-tf-state"
     key    = "dev/01-network/terraform.tfstate"
-    region = "ap-southeast-1"
+    region = "us-west-2"
   }
 }
 
