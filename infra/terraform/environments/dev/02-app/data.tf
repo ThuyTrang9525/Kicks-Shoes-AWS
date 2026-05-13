@@ -1,11 +1,9 @@
 data "terraform_remote_state" "network" {
   backend = "local"
   config = {
-<<<<<<< HEAD
     bucket = "kicks-shoes-tf-state"
     key    = "dev/01-network/terraform.tfstate"
     region = "us-west-2"
-=======
     path = "../01-network/terraform.tfstate"
   }
 }
@@ -33,7 +31,6 @@ data "aws_route_table" "default" {
   filter {
     name   = "association.main"
     values = ["true"]
->>>>>>> 59a840b0b4db78eb6d39ca328fd61d512813e049
   }
 }
 
