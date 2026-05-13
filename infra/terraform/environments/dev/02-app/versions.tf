@@ -8,6 +8,14 @@ terraform {
     }
   }
 
+<<<<<<< HEAD
+  backend "s3" {
+    bucket  = "kicks-shoes-tf-state"
+    key     = "dev/02-app/terraform.tfstate"
+    region  = "us-west-2"
+    encrypt = true
+  }
+=======
   # Using local state (S3 bucket not accessible)
   # backend "s3" {
   #   bucket  = "kicks-shoes-tf-state"
@@ -15,4 +23,5 @@ terraform {
   #   region  = "ap-southeast-1"
   #   encrypt = true
   # }
+>>>>>>> 59a840b0b4db78eb6d39ca328fd61d512813e049
 }

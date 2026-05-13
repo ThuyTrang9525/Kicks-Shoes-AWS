@@ -2,7 +2,7 @@ param(
   [Parameter(Mandatory = $true)]
   [string]$AwsAccountId,
 
-  [string]$AwsRegion = "ap-southeast-1",
+  [string]$AwsRegion = "us-west-2",
   [string]$AwsProfile = "default",
   [string]$EcrRepository = "kicks-shoes-backend",
   [string]$BaseTag = "latest",

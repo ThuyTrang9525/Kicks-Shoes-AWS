@@ -1,8 +1,8 @@
-aws_region   = "ap-southeast-1"
+aws_region   = "us-west-2"
 name_prefix  = "kicks-fargate-demo"
 
 # Update this for your ECR image URI.
-container_image = "123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/kicks-shoes-backend:demo-v1"
+container_image = "123456789012.dkr.ecr.us-west-2.amazonaws.com/kicks-shoes-backend:demo-v1"
 
 container_name = "kicks-backend"
 container_port = 3000

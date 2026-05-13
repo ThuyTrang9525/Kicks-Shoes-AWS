@@ -15,7 +15,7 @@
 ./scripts/ecs-fargate-e2e.ps1 `
   -AwsAccountId 123456789012 `
   -AwsProfile default `
-  -AwsRegion ap-southeast-1 `
+  -AwsRegion us-west-2 `
   -EcrRepository kicks-shoes-backend `
   -BaseTag latest `
   -NamePrefix kicks-fargate-demo

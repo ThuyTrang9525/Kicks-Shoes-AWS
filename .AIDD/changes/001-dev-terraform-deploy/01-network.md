@@ -36,7 +36,7 @@ Provision the VPC layer for dev. All networking resources live here. The `02-app
 ## Architecture
 
 ```
-VPC 10.0.0.0/16  (ap-southeast-1)
+VPC 10.0.0.0/16  (us-west-2)
 │
 ├── Public subnets      10.0.0.0/24  (AZ-a)   ← ALB, NAT GW
 │                       10.0.1.0/24  (AZ-b)   ← ALB
@@ -107,7 +107,7 @@ variable "project_name" {
 
 variable "aws_region" {
   type    = string
-  default = "ap-southeast-1"
+  default = "us-west-2"
 }
 
 variable "vpc_cidr" {
@@ -200,7 +200,7 @@ terraform {
   backend "s3" {
     bucket  = "kicks-shoes-state-trang"
     key     = "dev/01-network/terraform.tfstate"
-    region  = "ap-southeast-1"
+    region  = "us-west-2"
     encrypt = true
     # dynamodb_table = "terraform-locks" 
   }
@@ -213,7 +213,7 @@ terraform {
 
 ```hcl
 project_name = "kicks-shoes-dev"
-aws_region   = "ap-southeast-1"
+aws_region   = "us-west-2"
 vpc_cidr     = "10.0.0.0/16"
 
 public_subnet_cidrs  = ["10.0.0.0/24", "10.0.1.0/24"]
@@ -238,4 +238,4 @@ terraform apply -var-file="terraform.tfvars"
 ```
 
 > **Prerequisite:** S3 bucket `kicks-shoes-tf-state` must exist before `terraform init`.
-> Create once: `aws s3api create-bucket --bucket kicks-shoes-tf-state --region ap-southeast-1 --create-bucket-configuration LocationConstraint=ap-southeast-1`
+> Create once: `aws s3api create-bucket --bucket kicks-shoes-tf-state --region us-west-2 --create-bucket-configuration LocationConstraint=us-west-2`

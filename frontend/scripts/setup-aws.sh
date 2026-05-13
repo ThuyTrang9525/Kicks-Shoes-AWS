@@ -30,8 +30,8 @@ fi
 read -p "Enter project name [kicks-shoes]: " PROJECT_NAME
 PROJECT_NAME=${PROJECT_NAME:-kicks-shoes}
 
-read -p "Enter AWS region [ap-southeast-1]: " AWS_REGION
-AWS_REGION=${AWS_REGION:-ap-southeast-1}
+read -p "Enter AWS region [us-west-2]: " AWS_REGION
+AWS_REGION=${AWS_REGION:-us-west-2}
 
 read -p "Do you have a custom domain? (y/n) [n]: " HAS_DOMAIN
 HAS_DOMAIN=${HAS_DOMAIN:-n}

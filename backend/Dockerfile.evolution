@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # This image must be the previously approved stable image URI from the prior developer.
-ARG BASE_IMAGE_URI=123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/kicks-shoes-backend:stable
+ARG BASE_IMAGE_URI=123456789012.dkr.ecr.us-west-2.amazonaws.com/kicks-shoes-backend:stable
 FROM ${BASE_IMAGE_URI}
 
 WORKDIR /app

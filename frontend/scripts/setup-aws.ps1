@@ -27,9 +27,9 @@ if ([string]::IsNullOrWhiteSpace($ProjectName)) {
     $ProjectName = "kicks-shoes"
 }
 
-$AwsRegion = Read-Host "Enter AWS region [ap-southeast-1]"
+$AwsRegion = Read-Host "Enter AWS region [us-west-2]"
 if ([string]::IsNullOrWhiteSpace($AwsRegion)) {
-    $AwsRegion = "ap-southeast-1"
+    $AwsRegion = "us-west-2"
 }
 
 $HasDomain = Read-Host "Do you have a custom domain? (y/n) [n]"
