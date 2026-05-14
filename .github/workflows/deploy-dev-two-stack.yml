@@ -96,58 +96,18 @@ jobs:
         with:
           terraform_wrapper: false
 
-      - name: Terraform apply network stack
+      - name: Terraform apply network stack (DISABLED)
         working-directory: ${{ env.TF_NETWORK_DIR }}
         shell: bash
-        env:
-          TF_IN_AUTOMATION: 'true'
         run: |
-          set -euo pipefail
-          terraform init -reconfigure \
-            -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
-            -backend-config="key=dev/01-network/terraform.tfstate" \
-            -backend-config="region=${{ env.AWS_REGION }}" \
-            -backend-config="encrypt=true"
-          
-          
-          terraform apply -auto-approve -var="project_name=${{ env.TF_VAR_project_name }}" -var="aws_region=${{ env.AWS_REGION }}"
+          echo "Terraform apply is temporarily disabled to avoid conflicts."
+          # terraform init -reconfigure ...
+          # terraform apply -auto-approve ...
 
-      - name: Terraform apply app stack
+      - name: Terraform apply app stack (DISABLED)
         working-directory: ${{ env.TF_APP_DIR }}
         shell: bash
-        env:
-          TF_IN_AUTOMATION: 'true'
-          DEV_DOMAIN_NAME: ${{ vars.DEV_DOMAIN_NAME }}
-          DEV_APP_CONFIG_SECRET_NAME: ${{ vars.DEV_APP_CONFIG_SECRET_NAME }}
         run: |
-          set -euo pipefail
-
-          DOMAIN_NAME="${DEV_DOMAIN_NAME:-kicks-shoes.com}"
-          APP_CONFIG_SECRET_NAME="${DEV_APP_CONFIG_SECRET_NAME:-kicks-shoes-dev/app-config-v2}"
-
-          terraform init -reconfigure \
-            -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
-            -backend-config="key=dev/02-app/terraform.tfstate" \
-            -backend-config="region=${{ env.AWS_REGION }}" \
-            -backend-config="encrypt=true"
-
-          import_log_group_if_exists() {
-            local addr="$1"
-            local name="$2"
-            if aws logs describe-log-groups --log-group-name-prefix "$name" --query "logGroups[?logGroupName=='$name']" --output text | grep -q "$name"; then
-              echo "Importing existing log group $name"
-              terraform import "$addr" "$name" || true
-            fi
-          }
-
-          import_log_group_if_exists "module.ecs_cluster.aws_cloudwatch_log_group.this[0]" "/aws/ecs/kicks-shoes-dev-cluster"
-          import_log_group_if_exists "module.ecs_service.module.container_definition[\"app\"].aws_cloudwatch_log_group.this[0]" "/aws/ecs/kicks-shoes-dev-service/app"
-
-          export TF_VAR_container_image="${{ steps.build_push.outputs.image_uri }}"
-          
-          terraform apply -auto-approve \
-            -var="project_name=${{ env.TF_VAR_project_name }}" \
-            -var="aws_region=${{ env.AWS_REGION }}" \
-            -var="container_image=$TF_VAR_container_image" \
-            -var="app_config_secret_name=$APP_CONFIG_SECRET_NAME" \
-            -var="domain_name=$DOMAIN_NAME"
+          echo "Terraform apply is temporarily disabled. Using existing infrastructure."
+          # terraform init -reconfigure ...
+          # terraform apply -auto-approve ...
