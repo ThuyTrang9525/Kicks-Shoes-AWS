@@ -684,29 +684,26 @@ module "lambda_bedrock_chat" {
 # ============================================================================
 
 # S3 Gateway Endpoint
-resource "aws_vpc_endpoint" "s3" {
-  vpc_id       = local.vpc_id
-  service_name = "com.amazonaws.${var.aws_region}.s3"
-  vpc_endpoint_type = "Gateway"
-
-  route_table_ids = [local.route_table_id]
-
-  tags = merge(local.common_tags, {
-    Name = "${var.project_name}-s3-endpoint"
-    Purpose = "S3 Gateway Endpoint for private subnet access"
-  })
-}
+# resource "aws_vpc_endpoint" "s3" {
+#   vpc_id       = local.vpc_id
+#   service_name = "com.amazonaws.${var.aws_region}.s3"
+#   vpc_endpoint_type = "Gateway"
+#   route_table_ids = [local.route_table_id]
+#   tags = merge(local.common_tags, {
+#     Name = "${var.project_name}-s3-endpoint"
+#   })
+# }
 
 # DynamoDB Gateway Endpoint
-resource "aws_vpc_endpoint" "dynamodb" {
-  vpc_id       = local.vpc_id
-  service_name = "com.amazonaws.${var.aws_region}.dynamodb"
-  vpc_endpoint_type = "Gateway"
+# resource "aws_vpc_endpoint" "dynamodb" {
+# vpc_id       = local.vpc_id
+#  service_name = "com.amazonaws.${var.aws_region}.dynamodb"
+# vpc_endpoint_type = "Gateway"
 
-  route_table_ids = [local.route_table_id]
+# route_table_ids = [local.route_table_id]
 
-  tags = merge(local.common_tags, {
-    Name = "${var.project_name}-dynamodb-endpoint"
-    Purpose = "DynamoDB Gateway Endpoint for private subnet access"
-  })
-}
+#  tags = merge(local.common_tags, {
+#    Name = "${var.project_name}-dynamodb-endpoint"
+#    Purpose = "DynamoDB Gateway Endpoint for private subnet access"
+#  })
+#}
