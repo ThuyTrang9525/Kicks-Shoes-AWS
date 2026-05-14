@@ -206,8 +206,6 @@ jobs:
             -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="encrypt=true"
           
-          # Lệnh import phải nằm TRƯỚC lệnh apply và nằm trong block run này
-          terraform import "module.vpc.aws_db_subnet_group.database[0]" "kicks-shoes-dev-db-group-new" || true
           
           terraform apply -auto-approve -var="project_name=${{ env.TF_VAR_project_name }}" -var="aws_region=${{ env.AWS_REGION }}"
 

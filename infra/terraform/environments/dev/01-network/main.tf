@@ -16,7 +16,7 @@ module "vpc" {
 
   name = "${var.project_name}-vpc"
   cidr = var.vpc_cidr
-  database_subnet_group_name = "${var.project_name}-db-group-new"
+  database_subnet_group_name = "${var.project_name}-db-group-final"
   azs              = slice(data.aws_availability_zones.available.names, 0, 2)
   public_subnets   = var.public_subnet_cidrs
   private_subnets  = var.private_subnet_cidrs
