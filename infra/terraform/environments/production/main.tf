@@ -55,7 +55,7 @@ module "ecs" {
   private_subnet_ids      = module.network.private_subnet_ids
   alb_security_group_id   = module.alb.alb_security_group_id
   target_group_arn        = module.alb.target_group_arn
-  dynamodb_table_arn      = module.dynamodb.table_arn
+  dynamodb_table_arn      = module.dynamodb.dynamodb_table_arn
   app_config_secret_arn   = var.app_config_secret_arn
   app_config_secret_keys  = var.app_config_secret_keys
   tags                    = local.common_tags
