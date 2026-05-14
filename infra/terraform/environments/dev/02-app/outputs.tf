@@ -15,7 +15,7 @@ output "ecs_service_name" {
 }
 
 output "dynamodb_table_name" {
-  value = module.dynamodb.dynamodb_table_id
+  value = module.dynamodb.dynamodb_table_id # Thay vì .table_name
 }
 
 output "s3_uploads_bucket" {
