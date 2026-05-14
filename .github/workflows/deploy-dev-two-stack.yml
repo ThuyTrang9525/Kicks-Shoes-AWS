@@ -20,6 +20,9 @@ env:
   TF_APP_DIR: infra/terraform/environments/dev/02-app
   TF_STATE_BUCKET: kicks-shoes-tf-state
   ECR_REPOSITORY: kicks-shoes-backend
+  # Ép biến project_name cho toàn bộ các bước Terraform
+  TF_VAR_project_name: "kicks-shoes-dev"
+  TF_VAR_aws_region: us-west-2
 
 jobs:
   deploy-dev:
@@ -58,11 +61,7 @@ jobs:
               --region "$AWS_REGION" \
               --create-bucket-configuration LocationConstraint="$AWS_REGION"
           fi
-          BUCKET_REGION="$(aws s3api get-bucket-location --bucket "$TF_STATE_BUCKET" --query 'LocationConstraint' --output text)"
-          if [ "$BUCKET_REGION" = "None" ] || [ -z "$BUCKET_REGION" ]; then
-            BUCKET_REGION="us-east-1"
-          fi
-          echo "bucket_region=$BUCKET_REGION" >> "$GITHUB_OUTPUT"
+          echo "bucket_region=$AWS_REGION" >> "$GITHUB_OUTPUT"
 
       - name: Ensure ECR repository exists
         shell: bash
@@ -93,41 +92,6 @@ jobs:
 
           echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
 
-      - name: Validate app prerequisites
-        shell: bash
-        env:
-          DEV_DOMAIN_NAME: ${{ vars.DEV_DOMAIN_NAME }}
-          DEV_APP_CONFIG_SECRET_NAME: ${{ vars.DEV_APP_CONFIG_SECRET_NAME }}
-          DEV_ENABLE_CUSTOM_DOMAIN: ${{ vars.DEV_ENABLE_CUSTOM_DOMAIN }}
-        run: |
-          set -euo pipefail
-
-          DOMAIN_NAME="${DEV_DOMAIN_NAME:-kicks-shoes.com}"
-          APP_CONFIG_SECRET_NAME="${DEV_APP_CONFIG_SECRET_NAME:-kicks-shoes-dev/app-config}"
-          ENABLE_CUSTOM_DOMAIN="${DEV_ENABLE_CUSTOM_DOMAIN:-false}"
-
-          if [ "$ENABLE_CUSTOM_DOMAIN" = "true" ]; then
-            ZONE_ID=$(aws route53 list-hosted-zones-by-name \
-              --dns-name "$DOMAIN_NAME" \
-              --query 'HostedZones[?Name==`'"$DOMAIN_NAME"'.`].Id | [0]' \
-              --output text)
-
-            if [ -z "$ZONE_ID" ] || [ "$ZONE_ID" = "None" ]; then
-              echo "Missing Route53 hosted zone for $DOMAIN_NAME"
-              exit 1
-            fi
-
-            if ! nslookup -type=ns "$DOMAIN_NAME" >/tmp/domain-ns.txt 2>&1; then
-              echo "Public DNS for $DOMAIN_NAME is not resolvable. ACM DNS validation will not complete."
-              cat /tmp/domain-ns.txt
-              exit 1
-            fi
-          else
-            echo "Custom domain disabled. Skipping Route53/NS checks."
-          fi
-
-          aws secretsmanager describe-secret --secret-id "$APP_CONFIG_SECRET_NAME" >/dev/null
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -143,15 +107,10 @@ jobs:
           terraform init -reconfigure \
             -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
             -backend-config="key=dev/01-network/terraform.tfstate" \
-            -backend-config="region=${{ steps.tf_state.outputs.bucket_region }}" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="encrypt=true"
-          if [ -f "terraform.tfvars" ]; then
-            terraform plan -var-file="terraform.tfvars" -out=tfplan
-          else
-            echo "terraform.tfvars not found. Using module defaults for network stack."
-            terraform plan -out=tfplan
-          fi
-          terraform apply -auto-approve tfplan
+          
+          terraform apply -auto-approve -var="project_name=${{ env.TF_VAR_project_name }}" -var="aws_region=${{ env.AWS_REGION }}"
 
       - name: Terraform apply app stack
         working-directory: ${{ env.TF_APP_DIR }}
@@ -164,67 +123,24 @@ jobs:
           set -euo pipefail
 
           DOMAIN_NAME="${DEV_DOMAIN_NAME:-kicks-shoes.com}"
-          APP_CONFIG_SECRET_NAME="${DEV_APP_CONFIG_SECRET_NAME:-kicks-shoes-dev/app-config}"
+          # Sử dụng secret -v2 mà Trang đã tạo thủ công để khớp cấu hình
+          APP_CONFIG_SECRET_NAME="${DEV_APP_CONFIG_SECRET_NAME:-kicks-shoes-dev/app-config-v2}"
 
           terraform init -reconfigure \
             -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
             -backend-config="key=dev/02-app/terraform.tfstate" \
-            -backend-config="region=${{ steps.tf_state.outputs.bucket_region }}" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="encrypt=true"
 
-          # Required inputs must be set even for terraform import.
-          export TF_VAR_domain_name="$DOMAIN_NAME"
+          # Các biến bắt buộc cho Terraform
           export TF_VAR_container_image="${{ steps.build_push.outputs.image_uri }}"
+          export TF_VAR_domain_name="$DOMAIN_NAME"
+          export TF_VAR_app_config_secret_name="$APP_CONFIG_SECRET_NAME"
 
-          # Some existing IAM policies may exist but be missing from remote state.
-          # Import them to prevent EntityAlreadyExists failures during apply.
-          import_policy_if_missing() {
-            local tf_addr="$1"
-            local policy_name="$2"
-
-            # Always clear stale/deposed instances from state first.
-            # This prevents Terraform from planning a replacement that tries to
-            # create an already existing policy name.
-            terraform state rm "$tf_addr" >/dev/null 2>&1 || true
-
-            local account_id policy_arn
-            account_id="$(aws sts get-caller-identity --query Account --output text)"
-            policy_arn="arn:aws:iam::${account_id}:policy/${policy_name}"
-
-            if aws iam get-policy --policy-arn "$policy_arn" >/dev/null 2>&1; then
-              echo "Importing existing IAM policy $policy_name into state"
-              terraform import "$tf_addr" "$policy_arn" >/dev/null
-            else
-              echo "IAM policy $policy_name does not exist yet. Terraform will create it."
-            fi
-          }
-
-          PROJECT_NAME="$(awk -F'=' '/^project_name/{gsub(/[ "]/,"",$2); print $2}' terraform.tfvars 2>/dev/null || true)"
-          if [ -z "${PROJECT_NAME:-}" ]; then
-            PROJECT_NAME="kicks-shoes-dev"
-          fi
-
-          if grep -q 'resource "aws_iam_policy" "ecs_secrets"' main.tf; then
-            import_policy_if_missing "aws_iam_policy.ecs_secrets" "${PROJECT_NAME}-ecs-secrets"
-          fi
-          if grep -q 'resource "aws_iam_policy" "ecs_s3"' main.tf; then
-            import_policy_if_missing "aws_iam_policy.ecs_s3" "${PROJECT_NAME}-ecs-s3"
-          fi
-          if grep -q 'resource "aws_iam_policy" "ecs_dynamodb"' main.tf; then
-            import_policy_if_missing "aws_iam_policy.ecs_dynamodb" "${PROJECT_NAME}-ecs-dynamodb"
-          fi
-
-          PLAN_ARGS=(
-            -out=tfplan
-            "-var=container_image=${{ steps.build_push.outputs.image_uri }}"
-            "-var=domain_name=$DOMAIN_NAME"
-            "-var=app_config_secret_name=$APP_CONFIG_SECRET_NAME"
-          )
-          if [ -f "terraform.tfvars" ]; then
-            PLAN_ARGS+=("-var-file=terraform.tfvars")
-          else
-            echo "terraform.tfvars not found. Using explicit CI variables for app stack."
-          fi
-          terraform plan "${PLAN_ARGS[@]}"
-
-          terraform apply -auto-approve tfplan
+          # Lệnh apply với đầy đủ các biến quan trọng
+          terraform apply -auto-approve \
+            -var="project_name=${{ env.TF_VAR_project_name }}" \
+            -var="aws_region=${{ env.AWS_REGION }}" \
+            -var="container_image=${{ env.TF_VAR_container_image }}" \
+            -var="app_config_secret_name=$APP_CONFIG_SECRET_NAME" \
+            -var="domain_name=$DOMAIN_NAME"
