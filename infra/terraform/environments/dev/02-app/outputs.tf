@@ -76,23 +76,22 @@ output "dynamodb_chat_stream_arn" {
 # ============================================================================
 # VPC Endpoint Outputs (Must-have 4 Evidence)
 # ============================================================================
+# output "s3_vpc_endpoint_id" {
+#   description = "ID of the S3 VPC Gateway Endpoint"
+#   value       = aws_vpc_endpoint.s3.id
+# }
 
-output "s3_vpc_endpoint_id" {
-  description = "ID of the S3 VPC Gateway Endpoint"
-  value       = aws_vpc_endpoint.s3.id
-}
+# output "s3_vpc_endpoint_state" {
+#   description = "State of the S3 VPC Gateway Endpoint"
+#   value       = aws_vpc_endpoint.s3.state
+# }
 
-output "s3_vpc_endpoint_state" {
-  description = "State of the S3 VPC Gateway Endpoint"
-  value       = aws_vpc_endpoint.s3.state
-}
+# output "dynamodb_vpc_endpoint_id" {
+#   description = "ID of the DynamoDB VPC Gateway Endpoint"
+#   value       = aws_vpc_endpoint.dynamodb.id
+# }
 
-output "dynamodb_vpc_endpoint_id" {
-  description = "ID of the DynamoDB VPC Gateway Endpoint"
-  value       = aws_vpc_endpoint.dynamodb.id
-}
-
-output "dynamodb_vpc_endpoint_state" {
-  description = "State of the DynamoDB VPC Gateway Endpoint"
-  value       = aws_vpc_endpoint.dynamodb.state
-}
+# output "dynamodb_vpc_endpoint_state" {
+#   description = "State of the DynamoDB VPC Gateway Endpoint"
+#   value       = aws_vpc_endpoint.dynamodb.state
+# }

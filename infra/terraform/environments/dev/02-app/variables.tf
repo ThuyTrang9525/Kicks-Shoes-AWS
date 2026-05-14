@@ -63,7 +63,7 @@ variable "autoscaling_cpu_target" {
 variable "app_config_secret_name" {
   type        = string
   description = "Secrets Manager secret name containing app config keys"
-  default     = "kicks-shoes-dev/app-config"
+  default     = "kicks-shoes-dev/app-config-v2"
 }
 
 variable "tags" {

@@ -1,9 +1,7 @@
 data "terraform_remote_state" "network" {
   backend = "local"
   config = {
-    bucket = "kicks-shoes-tf-state"
-    key    = "dev/01-network/terraform.tfstate"
-    region = "us-west-2"
+    
     path = "../01-network/terraform.tfstate"
   }
 }
