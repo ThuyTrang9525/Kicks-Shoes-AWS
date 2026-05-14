@@ -28,7 +28,7 @@ concurrency:
 
 env:
   AWS_REGION: us-west-2
-  APP_NAME: kicks-shoes
+  APP_NAME: kicks-shoes-dev
   ECR_REPOSITORY: kicks-shoes-backend
   TF_STATE_KEY: zero-tf/ecs-fargate.tfstate
   TF_DIR: .tmp/zero-tf

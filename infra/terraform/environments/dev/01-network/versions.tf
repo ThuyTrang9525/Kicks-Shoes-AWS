@@ -8,10 +8,5 @@ terraform {
     }
   }
 
-  backend "s3" {
-    bucket  = "kicks-shoes-tf-state"
-    key     = "dev/01-network/terraform.tfstate"
-    region  = "us-west-2"
-    encrypt = true
-  }
+ 
 }
