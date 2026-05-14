@@ -95,7 +95,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
-
+        terraform import "module.vpc.aws_db_subnet_group.database[0]" "kicks-shoes-dev-db-group-new" || true
       - name: Terraform apply network stack
         working-directory: ${{ env.TF_NETWORK_DIR }}
         shell: bash
