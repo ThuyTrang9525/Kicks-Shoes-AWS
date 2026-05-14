@@ -20,7 +20,6 @@ env:
   TF_APP_DIR: infra/terraform/environments/dev/02-app
   TF_STATE_BUCKET: kicks-shoes-tf-state
   ECR_REPOSITORY: kicks-shoes-backend
-  # Ép biến project_name cho toàn bộ các bước Terraform
   TF_VAR_project_name: "kicks-shoes-dev"
   TF_VAR_aws_region: us-west-2
 
@@ -123,7 +122,6 @@ jobs:
           set -euo pipefail
 
           DOMAIN_NAME="${DEV_DOMAIN_NAME:-kicks-shoes.com}"
-          # Sử dụng secret -v2 mà Trang đã tạo thủ công để khớp cấu hình
           APP_CONFIG_SECRET_NAME="${DEV_APP_CONFIG_SECRET_NAME:-kicks-shoes-dev/app-config-v2}"
 
           terraform init -reconfigure \
@@ -132,14 +130,28 @@ jobs:
             -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="encrypt=true"
 
+          # Hàm helper để import các tài nguyên đã tồn tại tránh lỗi ResourceAlreadyExists
+          import_log_group_if_exists() {
+            local addr="$1"
+            local name="$2"
+            if aws logs describe-log-groups --log-group-name-prefix "$name" --query "logGroups[?logGroupName=='$name']" --output text | grep -q "$name"; then
+              echo "Importing existing log group $name into state at $addr"
+              terraform import "$addr" "$name" || true
+            fi
+          }
+
+          # Thực hiện import trước khi apply
+          import_log_group_if_exists "module.ecs_cluster.aws_cloudwatch_log_group.this[0]" "/aws/ecs/kicks-shoes-dev-cluster"
+          import_log_group_if_exists "module.ecs_service.module.container_definition[\"app\"].aws_cloudwatch_log_group.this[0]" "/aws/ecs/kicks-shoes-dev-service/app"
+
           # Các biến bắt buộc cho Terraform
           export TF_VAR_container_image="${{ steps.build_push.outputs.image_uri }}"
           export TF_VAR_domain_name="$DOMAIN_NAME"
           export TF_VAR_app_config_secret_name="$APP_CONFIG_SECRET_NAME"
-
-          # Lệnh apply với đầy đủ các biến quan trọng
+          
+          # Lệnh apply cuối cùng
           terraform apply -auto-approve \
-            -var="project_name=${{ env.TF_VAR_project_name }}" \
+            -var="project_name=kicks-shoes-dev" \
             -var="aws_region=${{ env.AWS_REGION }}" \
             -var="container_image=${{ env.TF_VAR_container_image }}" \
             -var="app_config_secret_name=$APP_CONFIG_SECRET_NAME" \
