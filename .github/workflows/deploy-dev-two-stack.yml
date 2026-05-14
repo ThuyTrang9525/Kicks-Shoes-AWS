@@ -110,7 +110,8 @@ jobs:
             -backend-config="encrypt=true"
           
           terraform apply -auto-approve -var="project_name=${{ env.TF_VAR_project_name }}" -var="aws_region=${{ env.AWS_REGION }}"
-
+          terraform import "module.vpc.aws_db_subnet_group.database[0]" "kicks-shoes-dev-db-group-new" || true
+        
       - name: Terraform apply app stack
         working-directory: ${{ env.TF_APP_DIR }}
         shell: bash
