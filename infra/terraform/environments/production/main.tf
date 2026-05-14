@@ -36,7 +36,7 @@ module "alb" {
 
 module "dynamodb" {
   source = "../../modules/dynamodb"
-
+project_name = var.project_name
   table_name = var.dynamodb_table_name
   tags       = local.common_tags
 }
