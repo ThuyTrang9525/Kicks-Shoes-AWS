@@ -95,7 +95,104 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
-        terraform import "module.vpc.aws_db_subnet_group.database[0]" "kicks-shoes-dev-db-group-new" || true
+ name: Deploy Dev Two Stack
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - kicks-production
+    paths:
+      - backend/**
+      - infra/terraform/environments/dev/**
+      - .github/workflows/deploy-dev-two-stack.yml
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  AWS_REGION: us-west-2
+  TF_NETWORK_DIR: infra/terraform/environments/dev/01-network
+  TF_APP_DIR: infra/terraform/environments/dev/02-app
+  TF_STATE_BUCKET: kicks-shoes-tf-state
+  ECR_REPOSITORY: kicks-shoes-backend
+  TF_VAR_project_name: "kicks-shoes-dev"
+  TF_VAR_aws_region: us-west-2
+
+jobs:
+  deploy-dev:
+    name: Build Image and Deploy Dev
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Resolve AWS account id
+        id: aws_account
+        shell: bash
+        run: |
+          set -euo pipefail
+          ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
+          echo "account_id=$ACCOUNT_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure Terraform state bucket exists
+        id: tf_state
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! aws s3api head-bucket --bucket "$TF_STATE_BUCKET" 2>/dev/null; then
+            aws s3api create-bucket \
+              --bucket "$TF_STATE_BUCKET" \
+              --region "$AWS_REGION" \
+              --create-bucket-configuration LocationConstraint="$AWS_REGION"
+          fi
+          echo "bucket_region=$AWS_REGION" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure ECR repository exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws ecr describe-repositories --repository-names "$ECR_REPOSITORY" >/dev/null 2>&1 || \
+          aws ecr create-repository --repository-name "$ECR_REPOSITORY" >/dev/null
+
+      - name: Login to ECR
+        id: login_ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push backend image
+        id: build_push
+        shell: bash
+        env:
+          ECR_REGISTRY: ${{ steps.login_ecr.outputs.registry }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          IMAGE_REPO="$ECR_REGISTRY/$ECR_REPOSITORY"
+          IMAGE_TAG="dev-${COMMIT_SHA::12}"
+          IMAGE_URI="$IMAGE_REPO:$IMAGE_TAG"
+
+          docker build -f backend/Dockerfile -t "$IMAGE_URI" -t "$IMAGE_REPO:dev-latest" ./backend
+          docker push "$IMAGE_URI"
+          docker push "$IMAGE_REPO:dev-latest"
+
+          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
       - name: Terraform apply network stack
         working-directory: ${{ env.TF_NETWORK_DIR }}
         shell: bash
@@ -109,9 +206,11 @@ jobs:
             -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="encrypt=true"
           
-          terraform apply -auto-approve -var="project_name=${{ env.TF_VAR_project_name }}" -var="aws_region=${{ env.AWS_REGION }}"
+          # Lệnh import phải nằm TRƯỚC lệnh apply và nằm trong block run này
           terraform import "module.vpc.aws_db_subnet_group.database[0]" "kicks-shoes-dev-db-group-new" || true
-        
+          
+          terraform apply -auto-approve -var="project_name=${{ env.TF_VAR_project_name }}" -var="aws_region=${{ env.AWS_REGION }}"
+
       - name: Terraform apply app stack
         working-directory: ${{ env.TF_APP_DIR }}
         shell: bash
@@ -131,29 +230,23 @@ jobs:
             -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="encrypt=true"
 
-          # Hàm helper để import các tài nguyên đã tồn tại tránh lỗi ResourceAlreadyExists
           import_log_group_if_exists() {
             local addr="$1"
             local name="$2"
             if aws logs describe-log-groups --log-group-name-prefix "$name" --query "logGroups[?logGroupName=='$name']" --output text | grep -q "$name"; then
-              echo "Importing existing log group $name into state at $addr"
+              echo "Importing existing log group $name"
               terraform import "$addr" "$name" || true
             fi
           }
 
-          # Thực hiện import trước khi apply
           import_log_group_if_exists "module.ecs_cluster.aws_cloudwatch_log_group.this[0]" "/aws/ecs/kicks-shoes-dev-cluster"
           import_log_group_if_exists "module.ecs_service.module.container_definition[\"app\"].aws_cloudwatch_log_group.this[0]" "/aws/ecs/kicks-shoes-dev-service/app"
 
-          # Các biến bắt buộc cho Terraform
           export TF_VAR_container_image="${{ steps.build_push.outputs.image_uri }}"
-          export TF_VAR_domain_name="$DOMAIN_NAME"
-          export TF_VAR_app_config_secret_name="$APP_CONFIG_SECRET_NAME"
           
-          # Lệnh apply cuối cùng
           terraform apply -auto-approve \
-            -var="project_name=kicks-shoes-dev" \
+            -var="project_name=${{ env.TF_VAR_project_name }}" \
             -var="aws_region=${{ env.AWS_REGION }}" \
-            -var="container_image=${{ env.TF_VAR_container_image }}" \
+            -var="container_image=$TF_VAR_container_image" \
             -var="app_config_secret_name=$APP_CONFIG_SECRET_NAME" \
             -var="domain_name=$DOMAIN_NAME"
